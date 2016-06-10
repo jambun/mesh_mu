@@ -7,6 +7,7 @@ class MuImporter
     @tokenizer = tokenizer || WordTokenizer.new(:encoding => 'ISO-8859-1')
     @lexicon = Lexicon.new(store)
     @mus = Mus.new(store)
+    @mesh = Mesh.new(store, @lexicon)
   end
 
   def import(readable)
@@ -17,9 +18,16 @@ class MuImporter
       end
     end
 
-    @lexicon.item_value_pretty { |s| puts s }
+#    @lexicon.item_value_pretty { |s| puts s }
 
-    @mus.item_value_pretty { |s| puts s }
+    @mus.item_value_pretty(:frequency) { |s| puts s }
+
+#    @mus.list.each { |m| @mesh.add(m) }
+
+#    @mesh.item_value_pretty { |s| puts s }
+
+#    @mesh.syntoks.each { |s| puts s }
+
   end
 
 end
