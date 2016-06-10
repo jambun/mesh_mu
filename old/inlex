@@ -1,0 +1,68 @@
+#!/usr/local/bin/perl
+# inlex - loads xfit and xlex and puts meshes from xfit into xlex
+require 'getopts.pl';
+&Getopts('f:l:');
+
+open (FIT,$opt_f);
+while (<FIT>) {
+    chop;
+    next unless ~s/^(\S*?)\s+//;
+    $h=$1;
+    @f=split;
+    for $x (@f) {
+# change split to retain many hashes
+	$x=~s/_(\d+)$//;
+#        ($k,$v)=split(/_/,$x);
+        $fit{$h}{$x}=$1;
+    }
+}
+close (FIT);
+open (LEX,$opt_l);
+while (<LEX>) {
+    chop;
+    ($l,$c)=split;
+    $lex{$l}=$c;
+}
+close (LEX);
+
+foreach $f (sort keys %fit) {
+
+    foreach $fl (keys %{$fit{$f}}) {
+	next unless $fl;
+	@a=split(/_/,$fl);
+	$tf=$f;
+	for $i (0..$#a) {
+	    $tf=~s/\#/\=$a[$i]/;
+	}
+	for $i (0..$#a) {
+	    $af=$tf;
+	    $a[$i]=~s/\)/\\\)/g;
+#	    printf "$a[$i]\n";
+	    $es= "\$af=~s/\\\=$a[$i]/\\\#/;";
+	    eval $es;
+#	    printf "$es\n";
+#	    printf "$af\n";
+	    $lex{$a[$i]}=$lex{$a[$i]}.' '.$af;
+	}
+    }
+}
+
+&Printlex;
+
+sub Printlex {
+foreach $l ( keys %lex ) {
+    print "$l $lex{$l}\n";
+}
+}
+
+sub Setand {
+    my %s=%{$fit{$f}};
+    my %o=%{$fit{$g}};
+    my @out; my $x; my $y;
+    for $x (keys %s) {
+	for $y (keys %o) {
+	    push (@out,$x) if $x eq $y;
+	}
+    }
+    return @out;
+}

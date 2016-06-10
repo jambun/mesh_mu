@@ -1,0 +1,47 @@
+#!/usr/local/bin/perl
+# knit pro phrases into mesh
+# needs file for LEX as from:-  lump xpros > xplex
+# and stdin is from:-  xphrs
+# -l file - name of pro lex file
+require 'getopts.pl';
+&Getopts('l:');
+$plex='xplex';
+$plex=$opt_l if $opt_l;
+
+open(LEX,$plex);
+while(<LEX>) {
+    chop;
+    ($w,$freq)=split;
+    $lex[++$#lex]=$w;
+}
+close(LEX);
+
+while ($line=<>) {
+    chop($line);
+    $r=0;
+    ($phr,$freq)=split(/\s+/,$line);
+    next if $freq==1;
+    @tok=split(/_/,$phr);
+    $lasttok=$#tok;
+    next if $lasttok==0;
+    $c=0;
+    foreach $t (@tok) {
+	$gotit='';
+	foreach $l (@lex) {
+	    if ($t eq $l) {
+		push(@ptok,$t);
+		$gotit++;
+		$c++;
+#		last;
+	    }
+	}
+	push(@ptok,'#') unless $gotit;
+    }
+    $pphr=join('_',@ptok);
+    @ptok=();
+    $pu{$pphr}++ if $c>0;
+#    $pu{$pphr}++ if $c>1;
+}
+
+foreach $p (keys(%pu)) { printf "$p\t\t$pu{$p}\n" if $pu{$p}>1 }
+

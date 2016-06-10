@@ -1,0 +1,71 @@
+#!/usr/bin/perl
+#
+# sqphr
+#
+# squash phrases together if they have equal frequency
+# input xphrs
+
+sub usage {
+	print <<EOT;
+Usage: sqphr [ -h ]
+    -h          this message
+EOT
+}
+
+
+use Getopt::Std;
+getopts ('h') || usage() && exit;
+$opt_h && usage() && exit;
+
+# load phrases
+while (<>) {
+    chop;
+    ($p, $c) = split;
+#    $phr{"${p}_"} = $c;
+    $r = rev($p);
+    $rph{"${r}_"} = $c;
+}
+
+$lp = 'anydummyvaluexxx';
+
+for $p (sort keys %rph) {
+#    print "$p $rph{$p}\n";
+    if ($rph{$p} == $rph{$lp} &&
+	length $p > length $lp &&
+	($ix = index($p, $lp)) > -1) {
+#	print "$ix  ", rev($lp), " $rph{$lp} => ", rev($p), " $rph{$p}\n";
+	delete $rph{$lp};
+    } else {
+	$r = rev($lp);
+	$r =~ s/^_//;
+	$phr{$r} = $rph{$lp};
+    }
+    $lp = $p;
+}
+
+
+for $p (sort keys %phr) {
+    print "$p $phr{$p}\n";
+}
+
+
+
+sub rev {
+    join '_', reverse split '_', shift;
+}
+
+sub dud {
+for $p (sort keys %phr) {
+    print "$p $phr{$p}\n";
+    if ($phr{$p} == $phr{$lp} &&
+	length $p > length $lp &&
+	($ix = index($p, $lp)) > -1) {
+	print "$ix  $lp $phr{$lp} => $p $phr{$p}\n";
+	delete $phr{$lp};
+    }
+    $lp = $p;
+}
+
+exit;
+
+}

@@ -1,0 +1,48 @@
+#!/usr/local/bin/perl
+# mu generator  takes input from tokl text
+# mug [-c] [-w | -l#] [-m#] [-i file] file ...
+
+# -w - only single tokens (words) = lexicon of input
+# -l# - maximum tokens, -w = -l1
+# -m# - minimum tukens, default -m1
+# -c - count all instances
+# -t - totals
+# -i file - incremental output to file
+
+require 'getopts.pl';
+&Getopts('twcl:m:i:');
+$opt_l=1 if $opt_w;
+$opt_m=1 unless $opt_m;
+
+if ($opt_i) {
+    open (IFILE,$opt_i);
+    while (<IFILE>) {
+	chop;
+	($k,$v)=split;
+	$tok{$k}=$v;
+    }
+    close (IFILE);
+}
+
+while ($t=shift(@buf) || ($t=<>)) {
+    next unless $t;
+    $t=~s/\n$//;
+    $ut=$ut ? $ut.'_'.$t : $t;
+    $tok{$ut}++ || &Dobuf;
+    $c=$ut=~tr/_/_/;
+    ++$c==$opt_l && &Dobuf;
+}
+
+foreach $w (keys(%tok)) {
+    next if $w=~y/_//+1<$opt_m;
+    $tot+=$tok{$w};
+    $w.=' '.$tok{$w} if $opt_c;
+    printf "$w\n";
+}
+printf "              Total: $tot\n" if $opt_t;
+
+sub Dobuf {
+    @buf=split(/_+/,$ut);
+    shift(@buf);
+    $ut='';
+}

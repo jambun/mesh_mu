@@ -1,0 +1,31 @@
+#!/usr/local/bin/perl
+# relex - feed xfit back into lex
+
+open (LEX,xlex);
+while ($lex=<LEX>) {
+    chop($lex);
+    ($l,$c)=split(/\s+/,$lex);
+    $lex{$l}=[$c];
+}
+open (FIT,testxfit);
+while ($fit=<FIT>) {
+    chop($fit);
+    $fit=~s/^(\S*?)\s+//;
+    $h=$1;
+    @f=split(/\s+/,$fit);
+    for $x (@f) {
+	($k,$v)=split(/_/,$x);
+	$fit{$h}{$k}=$v;
+    }
+}
+close (FIT);
+
+for $f (keys %fit) {
+    for $l (keys %{$fit{$f}}) {
+	push (@{$lex{$l}},$f);
+    }
+}
+
+for $l (keys %lex) {
+    printf "$l @{$lex{$l}}\n";
+}

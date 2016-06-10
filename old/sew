@@ -1,0 +1,43 @@
+#!/usr/local/bin/perl
+# sew - load xplex, xmesh and xtokl hashing non-xplex
+# later to find bracketting
+# sew -p plexfile -m meshfile -t toklfile
+require 'getopts.pl';
+&Getopts('p:m:t:');
+
+&Loadfiles;
+
+for $t (@tokl) {
+    printf "$t\n";
+    $t=~s/\)/\\\)/g;
+    $t=~s/\(/\\\(/g;
+    $t=~s/\?/\\\?/g;
+    $t=~s/\./\\\./g;
+    $pl=grep(/$t/,(keys %plex));
+    $pl='#' unless $pl;
+    printf "$pl\n";
+}
+
+sub Loadfiles {
+open (PLEX,$opt_p) || die;      # load xplex
+while ($plex=<PLEX>) {
+    chop($plex);
+    ($pl,$c)=split(/\s+/,$plex);
+    $plex{$pl}=$c;
+}
+close (PLEX);
+open (MESH,$opt_m) || die;      # load xmesh
+while ($plex=<MESH>) {
+    chop($plex);
+    ($pl,$c)=split(/\s+/,$plex);
+    $mesh{$pl}=$c;
+}
+close (MESH);
+open (TOKL,$opt_t) || die;
+while ($tokl=<TOKL>) {
+    chop($tokl);
+    $tokl[++$#tl]=$tokl;
+#    printf "$tokl[$#tl]\n";
+}
+close (TOKL);
+}

@@ -1,0 +1,179 @@
+#!/usr/local/bin/perl
+# stitch - load xplex, xmesh and xinlx
+# a serious start but very messy - rewrite
+
+require 'getopts.pl';
+&Getopts('p:m:i:');
+$deplim=2;
+
+&Loadfiles;
+
+#&Allmeld;
+
+while ($w=<>) {
+    chop($w);
+
+    $w && ($inw=$w) && (@kss=());
+    $w=$nw unless $w;
+    $w || ($w=$inw);
+    next unless $w;
+
+    @a=keys %{$inlx{$w}};
+    @a=grep(/#.+\=/,@a);
+
+    printf "a: @a\n";
+
+    srand(time);
+    $i=int(rand(@a));
+
+    $m=$a[$i];
+    $m=~/\=([^_]+)/;
+    $nw=$+;
+    printf "w: $w nw: $nw\n";
+    $m=~s/#/\=$w/;
+    @sts=();
+    for $n (keys %{$inlx{$nw}}) {
+	printf "n: $n\n";
+	next unless $n=~/#.+/;
+	$n=~s/#/\=$nw/;
+	push(@sts,&Meld($m,$n));
+     }
+
+    @sts=grep(/^$m/,@sts);
+    srand(time);
+    $j=int(rand(@sts));
+
+#    printf "$m $sts[$j]\n";
+    push(@kss,$sts[$j]);
+    @tkss=@kss;
+    $stream=shift(@tkss);
+    while ($ks=shift(@tkss)) {
+	@mk=&Meld($stream,$ks);
+	$stream.=$mk[0];
+    }
+    printf "stream: $stream\n";
+
+#    $nw=$w;
+
+}
+
+sub Meld {
+    my ($p,$s)=@_;
+
+    my ($po,$maxpo,$start,$end,$x,$a,$b,$out,@melds,@out);
+    my @p=split(/_/,$p);
+    my @s=split(/_/,$s);
+
+    my $so=$#p; my $maxso=$so+$#s;
+    for $po (0..$maxso) {
+	$maxpo=$po+$#p;
+	$start = $po<$so ? $po : $so;
+	$end = $maxpo>$maxso ? $maxpo : $maxso;
+	$x=$start;
+	while ($x<=$end) {
+	    $pi=$x-$po;
+	    $si=$x-$so;
+	    $x++;
+	    $a=($pi>=0 && $pi<=$#p) ? $p[$pi] : '';
+	    $b=($si>=0 && $si<=$#s) ? $s[$si] : '';
+	    if (($a && $b) && ($a ne $b)) {
+		undef(@out);
+		last;
+	    } else {
+		$ggg=$a?$a:$b;
+		push(@out,$ggg);
+	    }
+	}
+	if (@out) {
+	    $out=join('_',@out);
+	    push(@melds,$out);
+	}
+    }
+    return @melds;
+}
+
+sub Setand {
+    my ($p,$s)=@_;
+    my @p=split(/_/,$p);
+    my @s=split(/_/,$s);
+    my @out;
+    for $p (@p) {
+        for $s (@s) {
+            push (@out,$p) if $p eq $s;
+        }
+    }
+    return @out;
+}
+
+sub Loadfiles {
+
+open (PLEX,$opt_p) || die;	# load xplex
+while ($plex=<PLEX>) {
+    chop($plex);
+    ($pl,$c)=split(/\s+/,$plex);
+    $plex{$pl}=$c;
+}
+close (PLEX);
+open (MESH,$opt_m) || die;	# load xmesh
+while ($plex=<MESH>) {
+    chop($plex);
+    ($pl,$c)=split(/\s+/,$plex);
+    $mesh{$pl}=$c;
+}
+close (MESH);
+open (INLX,$opt_i) || die;
+while ($inlx=<INLX>) {
+    chop($inlx);
+    next unless $inlx=~s/^(\S*?)\s+//;
+    $h=$1;
+    @f=split(/\s+/,$inlx);
+    shift(@f);
+    for $x (@f) {
+        $inlx{$h}{$x}++;
+    }
+}
+close (INLX);
+}
+
+sub Chain {
+    local($dep,$phr,$plex)=@_;
+    local($p,$q,$r); local(%out);
+    return '' if ++$dep>$deplim;
+    local($sphr)=$phr;
+    $sphr=~s/([\[\]\(\)\.])/\\$1/g;
+    local(@a)=grep(/^$sphr\_/,%mesh);
+    return '' unless $a[0];
+    while ($p=shift(@a)) {
+        ($out{$p}++ && next) if $p=~/\_$plex$/;
+        local(@t)=split(/_/,$p);
+        local($x)=shift(@t);
+        $p=join('_',@t);
+        @t=&Chain($dep,$p,$plex);
+        while ($r=shift(@t)) {
+            $r=$x.'_'.$r;
+            $out{$r}++;
+        }
+    }
+    return (sort keys(%out));
+}
+
+sub Allmeld {
+
+#@m=keys %mesh;
+for $m (keys %mesh) {
+#    $m='the_#';
+    for $n (keys %mesh) {
+	next if $m eq $n;
+	next if ($m=~/\#$/ && $n=~/^\#/);
+	@a=&Meld($m,$n);
+	$m=~s/\(/\\\(/g;
+	$m=~s/\)/\\\)/g;
+	@a=grep(/^$m/,@a);
+	$m=~s/\\\(/\(/g;
+	$m=~s/\\\)/\)/g;
+	printf "$m\t$n\t\t@a\n" if @a;
+    }
+#    last;
+}
+
+}

@@ -1,0 +1,52 @@
+#!/usr/local/bin/perl
+# clash - class hash values. loads xfit and does set functions to classify
+
+while (<>) {
+    chop;
+    next unless ~s/^(\S*?)\s+//;
+    $h=$1;
+    @f=split;
+    for $x (@f) {
+        ($k,$v)=split(/_/,$x);
+        $fit{$h}{$k}=$v;
+    }
+}
+
+foreach $f (sort keys %fit) {
+    $p++; $q=0;
+    $fc=keys %{$fit{$f}};
+    foreach $g (sort keys %fit) {
+	next unless $q++ > $p;
+	next if $f eq $g;
+	$gc=keys %{$fit{$g}};
+	$small = $fc>$gc ? $gc : $fc;
+	@l=&Setand($fit{$f},$fit{$g});
+	$x=$#l+1;
+	$clash=0 || @l && ($clash=int($small/$x));
+#	$clash = int (@l ? ($small/@l) : 0);
+	printf "$f  $g ".@l." $fc $gc $clash\n" if $clash>0;
+#	printf "$f + $g\n@l\n\n" if @l;
+    }
+#    exit;
+}
+
+sub Setand {
+    my %s=%{$fit{$f}};
+    my %o=%{$fit{$g}};
+#    my %s=%{shift};
+#    my %o=%{shift};
+    my @out; my $x; my $y;
+    for $x (keys %s) {
+	for $y (keys %o) {
+	    push (@out,$x) if $x eq $y;
+	}
+    }
+    return @out;
+}
+
+
+sub Printfit {
+foreach $f ( keys %fit ) {
+    print "$f @{ $fit{$f} }\n";
+}
+}

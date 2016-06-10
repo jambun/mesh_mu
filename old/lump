@@ -1,0 +1,16 @@
+#!/usr/local/bin/perl
+# lump - thru pro finding head tokens for pro lex
+
+while (<>) {
+    ($phr,$c)=split;
+    next if $c==1;
+    @tok=split(/_/,$phr);
+    foreach $t (@tok) {
+	$t=~s/[<>]//g;
+	$out{$t}+=$c unless $t=~/[0-9]/;
+    }
+}
+
+foreach $o (keys(%out)) {
+    printf "$o $out{$o}\n";
+}

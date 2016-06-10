@@ -1,0 +1,47 @@
+#!/usr/local/bin/perl
+# clip - takes xclash and finds clips for mesh pairs
+
+while ( <> ) {
+    next unless $_;
+    ($m1,$m2,$cboth,$c1,$c2,$quo)=split;
+# thinks ...
+}
+
+exit;
+
+foreach $f (sort keys %fit) {
+    $p++; $q=0;
+    $fc=@{$fit{$f}};
+    foreach $g (sort keys %fit) {
+	next unless $q++ > $p;
+	next if $f eq $g;
+	$gc=@{$fit{$g}};
+	$small = $fc>$gc ? $gc : $fc;
+	@l=&Setand($fit{$f},$fit{$g});
+	$clash = int (@l ? $small/@l : 0);
+	printf "$f  $g ".@l." $fc $gc $clash\n" if @l>1;
+#	printf "$f + $g\n@l\n\n" if @l;
+    }
+#    exit;
+}
+
+#&Printfit;
+
+sub Setand {
+    my @s=@{shift};
+    my @o=@{shift};
+    my @out=(); my $x; my $y;
+    foreach $x (@s) {
+	foreach $y (@o) {
+	    push (@out,$x) if $x eq $y;
+	}
+    }
+    return @out;
+}
+
+
+sub Printfit {
+foreach $f ( keys %fit ) {
+    print "$f @{ $fit{$f} }\n";
+}
+}

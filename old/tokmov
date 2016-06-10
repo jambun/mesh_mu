@@ -1,0 +1,11 @@
+#!/bin/sh
+
+cp tokl $1
+cp mug $1
+cp pro $1
+cp lump $1
+cp knit $1
+cp lpro $1
+cp olpro $1
+cp tokmov $1
+cd $1

@@ -1,0 +1,8 @@
+#!/bin/sh
+
+tokl $1 | mug -wc | sort -k2nr > xlex
+tokl $1 | mug -cm2 | sort -k2nr> xphrs
+pro xphrs | sort -k2nr > xpros
+lump xpros | sort -k2nr > xplex
+knit xphrs | sort -k2nr > xmesh
+

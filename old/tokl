@@ -1,0 +1,31 @@
+#!/usr/local/bin/perl
+
+# tokl - token lister
+# -f show formatting
+# -c retain caps
+# -o old english  - include & and ; as word chars
+
+require 'getopts.pl';
+&Getopts('fco');
+
+while (<>) {
+    if ($opt_o) {
+	s/([^ \n\ra-zA-Z0-9\&\;])/ $1 /g;
+    } else {
+	s/([^ \n\ra-zA-Z0-9])/ $1 /g;
+    }
+    y/A-Z/a-z/ unless $opt_c;
+    if ($opt_f) {
+	s/^\s+/<in> /;
+	s/\r/ <cr> /g;
+	s/\n/ <lf> /g;
+    } else {
+	s/^\s+//;
+	s/\n/ /g;
+	s/\r/ /g;
+	s/\t/ /g;
+    }
+    s/ +/\n/g;
+    printf $_;
+}
+

@@ -1,0 +1,66 @@
+#!/usr/local/bin/perl
+# fit - list hash tokens for all mesh in xtokl
+# slow to run since it uses a simple algorithm that needs to 
+# read through tokl for each mesh
+# fit -p plexfile -m meshfile -t toklfile
+require 'getopts.pl';
+&Getopts('p:m:t:');
+
+($text,$junk)=@ARGV;
+
+open (PLEX,$opt_p) || die;
+while ($plex=<PLEX>) {
+    chop($plex);
+    ($pl,$c)=split(/\s+/,$plex);
+    $pro{$pl}=$c;
+}
+open (MESH,$opt_m) || die;
+while ($mesh=<MESH>) {
+    chop($mesh);
+    ($msh,$c)=split(/\s+/,$mesh);
+    $mo[++$#mo]=$msh;
+}
+close (MESH);
+open (TOKL,$opt_t) || die;
+while ($tokl=<TOKL>) {
+    chop($tokl);
+    $tl[++$#tl]=$tokl;
+}
+close (TOKL);
+
+while ($mesh=shift(@mo)) {
+# something here to make meshes of more than one hash into many meshes
+    @m=split(/_/,$mesh);
+    @wm=@m;
+    undef(@got);
+    $i=0;
+    @buf=@tl;
+    while ($t=shift(@buf)) {
+	$w=shift(@wm);
+	if (!$w) {		# mesh completed
+	    $out{$it}++;
+	    &Clean;
+	} elsif ($w eq '#') {	# mesh element is hash
+	    if ($pro{$t}) {	# tok is plex, ie not hash
+		&Clean;
+	    } else {		# tok is hash
+		$it=$it?join('_',$it,$t):$t;
+#		$it=$t;
+	    }
+	} elsif ( $w ne $t) {	# tok (plex) ne mesh element
+	    &Clean;
+	}
+    }
+    printf $mesh;
+    foreach $p (keys(%out)) {
+	printf " $p\_$out{$p}";
+    }
+    printf "\n";
+    undef(%out);
+}
+
+sub Clean {
+    @wm=@m;
+    $it='';
+}
+

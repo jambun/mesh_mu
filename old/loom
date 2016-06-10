@@ -1,0 +1,17 @@
+#!/bin/sh
+
+tokl -c $1 > x1_tokl
+
+mug -wc x1_tokl  | sort -k 2 -nr > x2_lex
+mug -cm2 x1_tokl | sqphr | sort -k 2 -nr > x3_phrs
+
+pro -l x2_lex x3_phrs | sort -k 2 -nr > x4_pros
+lump x4_pros | sort -k 2 -nr > x5_plex
+knit -l x5_plex x3_phrs | sort -k 2 -nr > x6_mesh
+
+fit -p x5_plex -m x6_mesh -t x1_tokl > x7_fit
+inlex -f x7_fit -l x2_lex > x8_inlx
+
+#stitch -p x5_plex -m x6_mesh -i x8_inlx
+
+#clasp > x9_clasp

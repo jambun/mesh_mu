@@ -1,0 +1,36 @@
+#!/usr/local/bin/perl
+# cyc extract all cycles in mesh for members of plex, start [and end]
+($pstart,$deplim,$pend)=@ARGV;
+open (MESH,xmesh);
+while (<MESH>) {
+    chop;
+    ($phr,$c)=split(/\s+/,$_);
+    $pro{$phr}++;
+}
+close (MESH);
+$plex=$pend?$pend:$pstart;
+local(@out)=&Chain($dep,$pstart);
+
+while ($a=shift(@out)) { printf "$a\n" }
+
+sub Chain {
+    local($dep,$phr)=@_;
+    local($p,$q,$r); local(%out);
+    return '' if ++$dep>$deplim;
+    local($sphr)=$phr;
+    $sphr=~s/([\[\]\(\)])/\\$1/g;
+    local(@a)=grep(/^$sphr\_/,%pro);
+    return '' unless $a[0];
+    while ($p=shift(@a)) {
+	($out{$p}++ && next) if $p=~/\_$plex$/;
+	local(@t)=split(/_/,$p);
+	local($x)=shift(@t);
+	$p=join('_',@t);
+	@t=&Chain($dep,$p);
+	while ($r=shift(@t)) {
+	    $r=$x.'_'.$r;
+	    $out{$r}++;
+	}
+    }
+    return (sort keys(%out));
+}

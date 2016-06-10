@@ -1,0 +1,16 @@
+#!/opt/perl5/bin/perl
+
+# clasp - make mesh vectors
+
+use grind;
+
+$g = grind->new();
+
+#$g->makevectors();
+
+$g->loadvectors('x9_clasp');
+$g->squashvectors();
+$g->printvectors();
+
+#$g->printmesh();
+#$g->printlex();

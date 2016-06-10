@@ -1,0 +1,54 @@
+#!/usr/local/bin/perl
+# pro gets pro-phrases from mu-phrases by freq ranking
+# needs file for LEX as from:-  tokl text | mug -wc | sort -k2nr > lex
+# and stdin is from:-  tokl text | mug -cm2
+# -l - lexicon file
+require 'getopts.pl';
+&Getopts('ml:');
+$lex='xlex';
+$lex=$opt_l if $opt_l;
+
+open(LEX,$lex);
+while(<LEX>) {
+    chop;
+    ($w,$freq)=split;
+    $lex[++$#lex]=$w;
+}
+close(LEX);
+
+while ($line=<>) {
+    chop($line);
+    $r=0;
+    ($phr,$c)=split(/\s+/,$line);
+    next if $c==1;
+    @tok=split(/_/,$phr);
+    $lasttok=$#tok;
+    next if $lasttok==0;
+    foreach $l (@lex) {
+	@ptok=();
+	while ($t=shift(@tok)) {
+	    if ($r==$lasttok && $t!~/\</) {
+		push(@ptok,"\<$r\>");
+		$r++;
+	    } elsif ($t eq $l) {
+		if ($r==0) { 
+		    push(@ptok,"\<$t\>");
+		    $r++;
+		} else {
+		    push(@ptok,"\<$r\>");
+		    $r++;
+		}
+	    } else {
+		push(@ptok,$t);
+	    }
+	}
+	@tok=@ptok;
+	last if $r>$lasttok;
+    }
+    $pphr=join('_',@ptok);
+    @ptok=();
+    $pu{$pphr}++;
+}
+
+foreach $p (keys(%pu)) { printf "$p\t\t$pu{$p}\n" }
+
